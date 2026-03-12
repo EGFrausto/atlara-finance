@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { auth } from "../firebase";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 
 const industrias = [
   { id: "construccion", label: "Construcción", icon: "construction", desc: "Maquinaria pesada, excavadoras, grúas" },
@@ -26,8 +26,12 @@ function Login({ onLogin }) {
     if (!form.correo || !form.password) { setError("Completa todos los campos"); return; }
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, form.correo, form.password);
-      onLogin({ correo: form.correo, industria: "construccion" });
+      const cred = await signInWithEmailAndPassword(auth, form.correo, form.password);
+      onLogin({
+        correo: cred.user.email,
+        nombre: cred.user.displayName,
+        industria: localStorage.getItem("atlara_industria") || "construccion"
+      });
     } catch (e) {
       setError("Correo o contraseña incorrectos");
     }
@@ -38,8 +42,9 @@ function Login({ onLogin }) {
     if (!form.industria) { setError("Selecciona una industria"); return; }
     setLoading(true);
     try {
-      await createUserWithEmailAndPassword(auth, form.correo, form.password);
-      onLogin({ correo: form.correo, industria: form.industria });
+      const cred = await createUserWithEmailAndPassword(auth, form.correo, form.password);
+      await updateProfile(cred.user, { displayName: form.nombre });
+      onLogin({ correo: form.correo, nombre: form.nombre, industria: form.industria });
     } catch (e) {
       if (e.code === "auth/email-already-in-use") setError("Este correo ya está registrado");
       else if (e.code === "auth/weak-password") setError("La contraseña debe tener al menos 6 caracteres");
@@ -62,20 +67,13 @@ function Login({ onLogin }) {
       {/* LEFT PANEL */}
       <div style={styles.left}>
         <div style={styles.leftContent}>
-
           <div style={styles.brand}>
             <img
               src="/atf.png"
               alt="Atlara Finance"
-              style={{
-                height: 140,
-                width: "auto",
-                objectFit: "contain",
-                filter: "brightness(0) invert(1)",
-              }}
+              style={{ height: 140, width: "auto", objectFit: "contain", filter: "brightness(0) invert(1)" }}
             />
           </div>
-
           <h1 style={styles.heroTitle}>
             Gestión financiera<br />para tu industria.
           </h1>
@@ -207,30 +205,16 @@ function Login({ onLogin }) {
 
 const styles = {
   page: { display:"flex", minHeight:"100vh", background:"#f5f5f7" },
-  left: {
-    flex: 1,
-    background: "#1d1d1f",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "60px",
-  },
-  leftContent: { maxWidth: 420 },
-  brand: { marginBottom: 40 },
-  heroTitle: { fontSize: 40, fontWeight: 700, color: "#ffffff", lineHeight: 1.2, letterSpacing: -0.5, marginBottom: 16 },
-  heroSub: { fontSize: 15, color: "rgba(255,255,255,.5)", lineHeight: 1.7, marginBottom: 40 },
-  industriasList: { display: "flex", flexDirection: "column", gap: 14 },
-  industriaItem: { display: "flex", alignItems: "center", gap: 10 },
-  industriaLabel: { fontSize: 14, color: "rgba(255,255,255,.7)", fontWeight: 500 },
-  right: {
-    width: 520,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "40px",
-    background: "#ffffff",
-  },
-  formBox: { width: "100%", maxWidth: 400 },
+  left: { flex:1, background:"#1d1d1f", display:"flex", alignItems:"center", justifyContent:"center", padding:"60px" },
+  leftContent: { maxWidth:420 },
+  brand: { marginBottom:40 },
+  heroTitle: { fontSize:40, fontWeight:700, color:"#ffffff", lineHeight:1.2, letterSpacing:-0.5, marginBottom:16 },
+  heroSub: { fontSize:15, color:"rgba(255,255,255,.5)", lineHeight:1.7, marginBottom:40 },
+  industriasList: { display:"flex", flexDirection:"column", gap:14 },
+  industriaItem: { display:"flex", alignItems:"center", gap:10 },
+  industriaLabel: { fontSize:14, color:"rgba(255,255,255,.7)", fontWeight:500 },
+  right: { width:520, display:"flex", alignItems:"center", justifyContent:"center", padding:"40px", background:"#ffffff" },
+  formBox: { width:"100%", maxWidth:400 },
   tabs: { display:"flex", gap:0, marginBottom:32, borderBottom:"1px solid #f0f0f0" },
   tab: { flex:1, background:"transparent", border:"none", padding:"12px 0", fontSize:14, fontWeight:500, color:"#aeaeb2", cursor:"pointer", fontFamily:"inherit", borderBottom:"2px solid transparent", marginBottom:-1 },
   tabActive: { color:"#00b4d8", borderBottom:"2px solid #00b4d8" },
@@ -245,7 +229,7 @@ const styles = {
   btnGhost: { background:"#f5f5f7", color:"#6e6e73", border:"none", borderRadius:12, padding:"14px 24px", fontSize:15, fontWeight:500, cursor:"pointer", fontFamily:"inherit" },
   btnRow: { display:"flex", gap:10, marginTop:8 },
   industriaGrid: { display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:20 },
-  industriaCard: { border:"1px solid #e5e5e7", borderRadius:12, padding:"16px 12px", cursor:"pointer", transition:"all .15s", background:"#f5f5f7", display:"flex", flexDirection:"column", gap:6 },
+  industriaCard: { border:"1px solid #e5e5e7", borderRadius:12, padding:"16px 12px", cursor:"pointer", background:"#f5f5f7", display:"flex", flexDirection:"column", gap:6 },
   industriaCardActive: { border:"1.5px solid #00b4d8", background:"#e0f7fc" },
   industriaCardLabel: { fontSize:13, fontWeight:600, color:"#1d1d1f" },
   industriaCardDesc: { fontSize:11, color:"#aeaeb2", lineHeight:1.4 },

@@ -20,14 +20,15 @@ function App() {
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
-      setUser(u);
+      if (u) setUser({ correo: u.email, nombre: u.displayName });
+      else setUser(null);
       setCargando(false);
     });
     return () => unsub();
   }, []);
 
   function handleLogin(datos) {
-    setUser({ correo: datos.correo });
+    setUser({ correo: datos.correo, nombre: datos.nombre });
     setIndustria(datos.industria);
     localStorage.setItem("atlara_industria", datos.industria);
   }

@@ -17,9 +17,7 @@ function Sidebar({ current, onChange, user, industria, onLogout }) {
   return (
     <aside style={styles.sidebar}>
       <div style={styles.logo}>
-        <img src="/at-fin.png" alt="Atlara" style={styles.logoImg} onError={e => e.target.style.display='none'} />
-        <div style={styles.logoWord}>Atlara</div>
-        <div style={styles.logoSub}>Finance</div>
+        <img src="/at-fin.png" alt="Atlara Finance" style={styles.logoImg} onError={e => e.target.style.display='none'} />
       </div>
 
       <nav style={styles.nav}>
@@ -27,10 +25,7 @@ function Sidebar({ current, onChange, user, industria, onLogout }) {
           <div
             key={item.id}
             onClick={() => onChange(item.id)}
-            style={{
-              ...styles.navItem,
-              ...(current === item.id ? styles.navActive : {})
-            }}
+            style={{ ...styles.navItem, ...(current === item.id ? styles.navActive : {}) }}
           >
             <span className="material-icons" style={{ ...styles.navIcon, color: current === item.id ? "#00b4d8" : "#aeaeb2" }}>
               {item.icon}
@@ -48,7 +43,7 @@ function Sidebar({ current, onChange, user, industria, onLogout }) {
             <span className="material-icons" style={{ fontSize:16, color:"#ffffff" }}>person</span>
           </div>
           <div style={styles.userInfo}>
-            <div style={styles.userEmail}>{user?.email?.split("@")[0]}</div>
+            <div style={styles.userName}>{user?.nombre || user?.correo?.split("@")[0]}</div>
             <div style={styles.userRole}>{config.activo}</div>
           </div>
         </div>
@@ -62,10 +57,8 @@ function Sidebar({ current, onChange, user, industria, onLogout }) {
 
 const styles = {
   sidebar: { width:240, minHeight:"100vh", background:"#ffffff", borderRight:"1px solid #e5e5e7", display:"flex", flexDirection:"column", position:"fixed", top:0, left:0, bottom:0 },
-  logo: { padding:"28px 20px 24px", borderBottom:"1px solid #f0f0f0", display:"flex", flexDirection:"column", alignItems:"flex-start" },
-  logoImg: { height:80, width:"auto", marginBottom:10, objectFit:"contain" },
-  logoWord: { fontSize:18, fontWeight:700, color:"#1d1d1f", letterSpacing:-0.5 },
-  logoSub: { fontSize:12, fontWeight:500, color:"#00b4d8", marginTop:1 },
+  logo: { padding:"20px", borderBottom:"1px solid #f0f0f0", display:"flex", alignItems:"center", justifyContent:"center" },
+  logoImg: { height:80, width:"auto", objectFit:"contain", mixBlendMode:"multiply" },
   nav: { flex:1, padding:"12px", display:"flex", flexDirection:"column", gap:2 },
   navItem: { display:"flex", alignItems:"center", gap:12, padding:"10px 12px", borderRadius:10, cursor:"pointer", transition:"background .15s" },
   navActive: { background:"#e0f7fc" },
@@ -76,7 +69,7 @@ const styles = {
   userBox: { flex:1, display:"flex", alignItems:"center", gap:10 },
   userAvatar: { width:32, height:32, borderRadius:"50%", background:"#00b4d8", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 },
   userInfo: { flex:1, minWidth:0 },
-  userEmail: { fontSize:13, fontWeight:600, color:"#1d1d1f", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" },
+  userName: { fontSize:13, fontWeight:600, color:"#1d1d1f", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" },
   userRole: { fontSize:11, color:"#aeaeb2" },
   logoutBtn: { background:"#f5f5f7", border:"none", borderRadius:8, width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", color:"#aeaeb2", flexShrink:0 },
 };
