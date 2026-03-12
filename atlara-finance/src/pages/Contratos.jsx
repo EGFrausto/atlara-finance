@@ -1,25 +1,48 @@
 import React, { useState } from "react";
 import Modal, { FormGroup, Input, Select, FormGrid, FormActions } from "../components/Modal";
+import { industriaConfig } from "../config/industrias";
 
-const inicial = { cliente:"", maquina:"", inicio:"", fin:"", costo:"", estado:"Activo" };
-
-const dataInicial = [
-  { id:1, id_contrato:"#A-203", cliente:"Constructora del Norte", maquina:"Excavadora CAT 320", inicio:"01 Ene 2025", fin:"31 Mar 2025", costo:"$45,000", estado:"Activo" },
-  { id:2, id_contrato:"#A-204", cliente:"JRSA Infraestructura", maquina:"Grúa Liebherr LTM", inicio:"01 Feb 2025", fin:"15 Abr 2025", costo:"$72,000", estado:"Activo" },
-  { id:3, id_contrato:"#A-197", cliente:"Obras y Soluciones SA", maquina:"Retroexcavadora JD", inicio:"10 Nov 2024", fin:"10 Mar 2025", costo:"$28,000", estado:"Vencido" },
-  { id:4, id_contrato:"#A-201", cliente:"GHL Construcciones", maquina:"Compactadora CASE", inicio:"01 Mar 2025", fin:"30 Abr 2025", costo:"$18,000", estado:"Pendiente" },
-  { id:5, id_contrato:"#A-188", cliente:"Constructora del Norte", maquina:"Grúa Liebherr LTM", inicio:"01 Sep 2024", fin:"31 Dic 2024", costo:"$65,000", estado:"Finalizado" },
-];
+const dataInicial = {
+  construccion: [
+    { id:1, id_contrato:"#A-203", cliente:"Constructora del Norte", maquina:"Excavadora CAT 320", inicio:"01 Ene 2025", fin:"31 Mar 2025", costo:"$45,000", estado:"Activo" },
+    { id:2, id_contrato:"#A-204", cliente:"JRSA Infraestructura", maquina:"Grúa Liebherr LTM", inicio:"01 Feb 2025", fin:"15 Abr 2025", costo:"$72,000", estado:"Activo" },
+    { id:3, id_contrato:"#A-197", cliente:"Obras y Soluciones SA", maquina:"Retroexcavadora JD", inicio:"10 Nov 2024", fin:"10 Mar 2025", costo:"$28,000", estado:"Vencido" },
+    { id:4, id_contrato:"#A-201", cliente:"GHL Construcciones", maquina:"Compactadora CASE", inicio:"01 Mar 2025", fin:"30 Abr 2025", costo:"$18,000", estado:"Pendiente" },
+  ],
+  transporte: [
+    { id:1, id_contrato:"#T-101", cliente:"Logística Express MX", maquina:"Camión Kenworth T680", inicio:"01 Ene 2026", fin:"31 Mar 2026", costo:"$35,000", estado:"Activo" },
+    { id:2, id_contrato:"#T-102", cliente:"Distribuidora Central", maquina:"Camioneta Sprinter", inicio:"01 Feb 2026", fin:"30 Abr 2026", costo:"$18,000", estado:"Activo" },
+    { id:3, id_contrato:"#T-098", cliente:"Transportes del Norte", maquina:"Trailer Freightliner", inicio:"01 Nov 2025", fin:"31 Ene 2026", costo:"$52,000", estado:"Vencido" },
+  ],
+  movilidad: [
+    { id:1, id_contrato:"#M-201", cliente:"Juan Pérez", maquina:"Sedan Toyota Corolla", inicio:"01 Mar 2026", fin:"31 Mar 2026", costo:"$8,500", estado:"Activo" },
+    { id:2, id_contrato:"#M-202", cliente:"María García", maquina:"Pickup Ford Ranger", inicio:"15 Mar 2026", fin:"15 Abr 2026", costo:"$12,000", estado:"Activo" },
+    { id:3, id_contrato:"#M-198", cliente:"Pedro Martínez", maquina:"SUV Honda CR-V", inicio:"01 Ene 2026", fin:"28 Feb 2026", costo:"$10,000", estado:"Vencido" },
+  ],
+  medico: [
+    { id:1, id_contrato:"#H-301", cliente:"Hospital Central", maquina:"Resonancia MRI 3T", inicio:"01 Ene 2026", fin:"31 Dic 2026", costo:"$85,000", estado:"Activo" },
+    { id:2, id_contrato:"#H-302", cliente:"Clínica del Norte", maquina:"Ultrasonido Portátil", inicio:"01 Feb 2026", fin:"31 Jul 2026", costo:"$22,000", estado:"Activo" },
+    { id:3, id_contrato:"#H-298", cliente:"Centro Médico Sur", maquina:"Tomógrafo CT", inicio:"01 Sep 2025", fin:"28 Feb 2026", costo:"$95,000", estado:"Vencido" },
+  ],
+  inmobiliaria: [
+    { id:1, id_contrato:"#I-401", cliente:"Tienda XYZ", maquina:"Local Comercial Plaza Norte", inicio:"01 Ene 2026", fin:"31 Dic 2026", costo:"$45,000", estado:"Activo" },
+    { id:2, id_contrato:"#I-402", cliente:"Empresa ABC", maquina:"Bodega Industrial", inicio:"01 Mar 2026", fin:"28 Feb 2027", costo:"$32,000", estado:"Activo" },
+    { id:3, id_contrato:"#I-398", cliente:"Oficinas Corp SA", maquina:"Oficina Torre Empresarial", inicio:"01 Jun 2025", fin:"31 Dic 2025", costo:"$28,000", estado:"Vencido" },
+  ],
+};
 
 const estadoStyle = {
   Activo:     { bg:"#e8f8ee", color:"#1a7f37" },
   Vencido:    { bg:"#fff0ee", color:"#ff3b30" },
-  Pendiente:  { bg:"#e0f7fc", color:"#00b4d8" },
+  Pendiente:  { bg:"#e8f0ff", color:"#0071e3" },
   Finalizado: { bg:"#f5f5f7", color:"#aeaeb2" },
 };
 
-function Contratos() {
-  const [data, setData] = useState(dataInicial);
+function Contratos({ industria = "construccion" }) {
+  const config = industriaConfig[industria] || industriaConfig.construccion;
+  const inicial = { cliente:"", maquina:"", inicio:"", fin:"", costo:"", estado:"Activo" };
+
+  const [data, setData] = useState(dataInicial[industria] || dataInicial.construccion);
   const [q, setQ] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [confirmarId, setConfirmarId] = useState(null);
@@ -92,7 +115,7 @@ function Contratos() {
         </div>
         <table style={styles.table}>
           <thead>
-            <tr>{["#","Cliente","Maquinaria","Inicio","Fin","Costo/mes","Estado",""].map(h => <th key={h} style={styles.th}>{h}</th>)}</tr>
+            <tr>{["#","Cliente", config.activo,"Inicio","Fin","Costo/mes","Estado",""].map(h => <th key={h} style={styles.th}>{h}</th>)}</tr>
           </thead>
           <tbody>
             {filtrados.map(c => (
@@ -128,10 +151,10 @@ function Contratos() {
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title="Nuevo Contrato">
         <FormGrid>
           <FormGroup label="Cliente *">
-            <Input name="cliente" value={form.cliente} onChange={handleChange} placeholder="Constructora del Norte" />
+            <Input name="cliente" value={form.cliente} onChange={handleChange} placeholder="Nombre del cliente" />
           </FormGroup>
-          <FormGroup label="Maquinaria *">
-            <Input name="maquina" value={form.maquina} onChange={handleChange} placeholder="Excavadora CAT 320" />
+          <FormGroup label={`${config.activo} *`}>
+            <Input name="maquina" value={form.maquina} onChange={handleChange} placeholder={config.activoEjemplos.nombre} />
           </FormGroup>
           <FormGroup label="Fecha inicio">
             <Input name="inicio" type="date" value={form.inicio} onChange={handleChange} />

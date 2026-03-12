@@ -15,13 +15,18 @@ import "./App.css";
 function App() {
   const [page, setPage] = useState("dashboard");
   const [user, setUser] = useState(null);
-  const [industria, setIndustria] = useState(() => localStorage.getItem("atlara_industria") || "construccion");
+  const [industria, setIndustria] = useState("construccion");
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
-      if (u) setUser({ correo: u.email, nombre: u.displayName });
-      else setUser(null);
+      if (u) {
+        setUser({ correo: u.email, nombre: u.displayName });
+        const savedIndustria = localStorage.getItem(`atlara_industria_${u.uid}`);
+        if (savedIndustria) setIndustria(savedIndustria);
+      } else {
+        setUser(null);
+      }
       setCargando(false);
     });
     return () => unsub();
@@ -30,12 +35,13 @@ function App() {
   function handleLogin(datos) {
     setUser({ correo: datos.correo, nombre: datos.nombre });
     setIndustria(datos.industria);
-    localStorage.setItem("atlara_industria", datos.industria);
+    localStorage.setItem(`atlara_industria_${auth.currentUser?.uid}`, datos.industria);
   }
 
   async function handleLogout() {
     await signOut(auth);
     setUser(null);
+    setIndustria("construccion");
     setPage("dashboard");
   }
 
@@ -49,11 +55,11 @@ function App() {
 
   function renderPage() {
     if (page === "dashboard") return <Dashboard industria={industria} />;
-    if (page === "clientes") return <Clientes />;
+    if (page === "clientes") return <Clientes industria={industria} />;
     if (page === "maquinaria") return <Maquinaria industria={industria} />;
     if (page === "contratos") return <Contratos industria={industria} />;
     if (page === "inventario") return <Inventario industria={industria} />;
-    if (page === "pagos") return <Pagos />;
+    if (page === "pagos") return <Pagos industria={industria} />;
     if (page === "reportes") return <Reportes industria={industria} />;
   }
 

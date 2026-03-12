@@ -1,24 +1,47 @@
 import React, { useState } from "react";
 import Modal, { FormGroup, Input, Select, FormGrid, FormActions } from "../components/Modal";
+import { industriaConfig } from "../config/industrias";
 
-const inicial = { cliente:"", contrato:"", monto:"", fecha:"", estado:"Pendiente" };
-
-const dataInicial = [
-  { id:1, cliente:"Constructora del Norte", contrato:"#A-203", monto:"$45,000", fecha:"28 Feb 2025", estado:"Pagado" },
-  { id:2, cliente:"JRSA Infraestructura", contrato:"#A-204", monto:"$72,000", fecha:"15 Mar 2025", estado:"Pendiente" },
-  { id:3, cliente:"Obras y Soluciones SA", contrato:"#A-197", monto:"$28,000", fecha:"10 Mar 2025", estado:"Vencido" },
-  { id:4, cliente:"GHL Construcciones", contrato:"#A-201", monto:"$18,000", fecha:"30 Mar 2025", estado:"Pendiente" },
-  { id:5, cliente:"Constructora del Norte", contrato:"#A-203", monto:"$45,000", fecha:"31 Ene 2025", estado:"Pagado" },
-];
+const dataInicial = {
+  construccion: [
+    { id:1, cliente:"Constructora del Norte", contrato:"#A-203", monto:"$45,000", fecha:"28 Feb 2026", estado:"Pagado" },
+    { id:2, cliente:"JRSA Infraestructura", contrato:"#A-204", monto:"$72,000", fecha:"15 Mar 2026", estado:"Pendiente" },
+    { id:3, cliente:"Obras y Soluciones SA", contrato:"#A-197", monto:"$28,000", fecha:"10 Mar 2026", estado:"Vencido" },
+    { id:4, cliente:"GHL Construcciones", contrato:"#A-201", monto:"$18,000", fecha:"30 Mar 2026", estado:"Pendiente" },
+  ],
+  transporte: [
+    { id:1, cliente:"Logística Express MX", contrato:"#T-101", monto:"$35,000", fecha:"28 Feb 2026", estado:"Pagado" },
+    { id:2, cliente:"Distribuidora Central", contrato:"#T-102", monto:"$18,000", fecha:"15 Mar 2026", estado:"Pendiente" },
+    { id:3, cliente:"Transportes del Norte", contrato:"#T-098", monto:"$52,000", fecha:"31 Ene 2026", estado:"Vencido" },
+  ],
+  movilidad: [
+    { id:1, cliente:"Juan Pérez", contrato:"#M-201", monto:"$8,500", fecha:"31 Mar 2026", estado:"Pendiente" },
+    { id:2, cliente:"María García", contrato:"#M-202", monto:"$12,000", fecha:"15 Abr 2026", estado:"Pendiente" },
+    { id:3, cliente:"Pedro Martínez", contrato:"#M-198", monto:"$10,000", fecha:"28 Feb 2026", estado:"Vencido" },
+  ],
+  medico: [
+    { id:1, cliente:"Hospital Central", contrato:"#H-301", monto:"$85,000", fecha:"28 Feb 2026", estado:"Pagado" },
+    { id:2, cliente:"Clínica del Norte", contrato:"#H-302", monto:"$22,000", fecha:"28 Feb 2026", estado:"Pagado" },
+    { id:3, cliente:"Centro Médico Sur", contrato:"#H-298", monto:"$95,000", fecha:"28 Feb 2026", estado:"Vencido" },
+  ],
+  inmobiliaria: [
+    { id:1, cliente:"Tienda XYZ", contrato:"#I-401", monto:"$45,000", fecha:"28 Feb 2026", estado:"Pagado" },
+    { id:2, cliente:"Empresa ABC", contrato:"#I-402", monto:"$32,000", fecha:"31 Mar 2026", estado:"Pendiente" },
+    { id:3, cliente:"Oficinas Corp SA", contrato:"#I-398", monto:"$28,000", fecha:"31 Dic 2025", estado:"Vencido" },
+  ],
+};
 
 const estadoStyle = {
   Pagado:   { bg:"#e8f8ee", color:"#1a7f37", icon:"check_circle" },
-  Pendiente:{ bg:"#e0f7fc", color:"#00b4d8", icon:"schedule" },
+  Pendiente:{ bg:"#e8f0ff", color:"#0071e3", icon:"schedule" },
   Vencido:  { bg:"#fff0ee", color:"#ff3b30", icon:"warning" },
 };
 
-function Pagos() {
-  const [data, setData] = useState(dataInicial);
+function Pagos({ industria = "construccion" }) {
+  const config = industriaConfig[industria] || industriaConfig.construccion;
+  const inicial = { cliente:"", contrato:"", monto:"", fecha:"", estado:"Pendiente" };
+
+  const [data, setData] = useState(dataInicial[industria] || dataInicial.construccion);
   const [q, setQ] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [confirmarId, setConfirmarId] = useState(null);
@@ -73,10 +96,10 @@ function Pagos() {
 
       <div style={styles.miniGrid}>
         {[
-          { label:"Pagados", value:"$320,000", icon:"check_circle", color:"#1a7f37" },
-          { label:"Pendientes", value:"$90,000", icon:"schedule", color:"#00b4d8" },
-          { label:"Vencidos", value:"$28,000", icon:"warning", color:"#ff3b30" },
-          { label:"Total mes", value:"$438,000", icon:"payments", color:"#1d1d1f" },
+          { label:"Pagados", value:data.filter(p=>p.estado==="Pagado").length, icon:"check_circle", color:"#1a7f37" },
+          { label:"Pendientes", value:data.filter(p=>p.estado==="Pendiente").length, icon:"schedule", color:"#00b4d8" },
+          { label:"Vencidos", value:data.filter(p=>p.estado==="Vencido").length, icon:"warning", color:"#ff3b30" },
+          { label:"Total registros", value:data.length, icon:"payments", color:"#1d1d1f" },
         ].map((s,i) => (
           <div key={i} style={styles.miniCard}>
             <span className="material-icons" style={{ fontSize:20, color:s.color }}>{s.icon}</span>
@@ -111,15 +134,9 @@ function Pagos() {
                   </span>
                 </td>
                 <td style={styles.td}>
-                  {p.estado === "Pendiente" && (
-                    <button style={styles.btnPrimary} onClick={() => marcarPagado(p.id)}>Cobrar</button>
-                  )}
-                  {p.estado === "Vencido" && (
-                    <button style={styles.btnDanger} onClick={() => showToast("Recordatorio enviado ✓")}>Recordar</button>
-                  )}
-                  {p.estado === "Pagado" && (
-                    <button style={styles.btnGhost}>Ver recibo</button>
-                  )}
+                  {p.estado === "Pendiente" && <button style={styles.btnPrimary} onClick={() => marcarPagado(p.id)}>Cobrar</button>}
+                  {p.estado === "Vencido" && <button style={styles.btnDanger} onClick={() => showToast("Recordatorio enviado ✓")}>Recordar</button>}
+                  {p.estado === "Pagado" && <button style={styles.btnGhost}>Ver recibo</button>}
                 </td>
                 <td style={styles.td}>
                   {confirmarId === p.id ? (
@@ -143,7 +160,7 @@ function Pagos() {
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title="Registrar Pago">
         <FormGrid>
           <FormGroup label="Cliente *">
-            <Input name="cliente" value={form.cliente} onChange={handleChange} placeholder="Constructora del Norte" />
+            <Input name="cliente" value={form.cliente} onChange={handleChange} placeholder="Nombre del cliente" />
           </FormGroup>
           <FormGroup label="Contrato">
             <Input name="contrato" value={form.contrato} onChange={handleChange} placeholder="#A-203" />
@@ -187,7 +204,7 @@ const styles = {
   btnAdd: { display:"flex", alignItems:"center", gap:6, background:"#00b4d8", color:"#fff", border:"none", borderRadius:12, padding:"10px 18px", fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"inherit" },
   miniGrid: { display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:16, marginBottom:24 },
   miniCard: { background:"#ffffff", borderRadius:16, padding:"20px", border:"1px solid #e5e5e7", boxShadow:"0 2px 8px rgba(0,0,0,.06)", display:"flex", flexDirection:"column", gap:8 },
-  miniValue: { fontSize:28, fontWeight:700, letterSpacing:-1 },
+  miniValue: { fontSize:32, fontWeight:700, letterSpacing:-1 },
   miniLabel: { fontSize:13, color:"#6e6e73", fontWeight:500 },
   card: { background:"#ffffff", borderRadius:16, border:"1px solid #e5e5e7", boxShadow:"0 2px 8px rgba(0,0,0,.06)", overflow:"hidden" },
   cardHeader: { padding:"20px 24px", borderBottom:"1px solid #f0f0f0" },
