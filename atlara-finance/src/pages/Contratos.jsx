@@ -188,7 +188,7 @@ function Contratos({ industria = "construccion" }) {
 }
 
 const styles = {
-  page: { padding:"0 40px 40px", marginLeft:240, background:"#f5f5f7", minHeight:"100vh" },
+  page: { padding:"0 40px 40px", background:"#f5f5f7", minHeight:"100vh" },
   topbar: { display:"flex", justifyContent:"space-between", alignItems:"flex-end", padding:"40px 0 28px", marginBottom:28 },
   pageTag: { fontSize:13, fontWeight:500, color:"#00b4d8", marginBottom:4 },
   title: { fontSize:34, fontWeight:700, color:"#1d1d1f", letterSpacing:-0.5 },

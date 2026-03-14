@@ -39,7 +39,6 @@ const estadoStyle = {
 function Clientes({ industria = "construccion" }) {
   const config = industriaConfig[industria] || industriaConfig.construccion;
   const inicial = { nombre:"", contacto:"", correo:"", telefono:"", ciudad:"", estado:"Activo" };
-
   const [data, setData] = useState(dataInicial[industria] || dataInicial.construccion);
   const [q, setQ] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -182,7 +181,7 @@ function Clientes({ industria = "construccion" }) {
 }
 
 const styles = {
-  page: { padding:"0 40px 40px", marginLeft:240, background:"#f5f5f7", minHeight:"100vh" },
+  page: { padding:"0 40px 40px", background:"#f5f5f7", minHeight:"100vh" },
   topbar: { display:"flex", justifyContent:"space-between", alignItems:"flex-end", padding:"40px 0 28px", marginBottom:28 },
   pageTag: { fontSize:13, fontWeight:500, color:"#00b4d8", marginBottom:4 },
   title: { fontSize:34, fontWeight:700, color:"#1d1d1f", letterSpacing:-0.5 },

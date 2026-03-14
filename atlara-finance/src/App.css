@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
@@ -8,5 +6,14 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-.app { display: flex; }
-.main { flex: 1; }
+.app {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main {
+  flex: 1;
+  min-height: 100vh;
+  margin-left: 240px;
+  transition: margin-left .2s;
+}

@@ -9,6 +9,7 @@ import Contratos from "./pages/Contratos";
 import Inventario from "./pages/Inventario";
 import Pagos from "./pages/Pagos";
 import Reportes from "./pages/Reportes";
+import Operadores from "./pages/Operadores";
 import Login from "./pages/Login";
 import "./App.css";
 
@@ -17,6 +18,9 @@ function App() {
   const [user, setUser] = useState(null);
   const [industria, setIndustria] = useState("construccion");
   const [cargando, setCargando] = useState(true);
+  const [collapsed, setCollapsed] = useState(false);
+
+  const sidebarWidth = collapsed ? 64 : 240;
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
@@ -61,12 +65,21 @@ function App() {
     if (page === "inventario") return <Inventario industria={industria} />;
     if (page === "pagos") return <Pagos industria={industria} />;
     if (page === "reportes") return <Reportes industria={industria} />;
+    if (page === "operadores") return <Operadores industria={industria} />;
   }
 
   return (
     <div className="app">
-      <Sidebar current={page} onChange={setPage} user={user} industria={industria} onLogout={handleLogout} />
-      <main className="main">
+      <Sidebar
+        current={page}
+        onChange={setPage}
+        user={user}
+        industria={industria}
+        onLogout={handleLogout}
+        collapsed={collapsed}
+        onCollapse={setCollapsed}
+      />
+      <main style={{ marginLeft: sidebarWidth, transition:"margin-left .2s", flex:1, minHeight:"100vh", background:"#f5f5f7" }}>
         {renderPage()}
       </main>
     </div>

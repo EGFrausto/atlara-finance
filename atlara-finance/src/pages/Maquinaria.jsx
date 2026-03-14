@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Modal, { FormGroup, Input, Select, FormGrid, FormActions } from "../components/Modal";
 import { industriaConfig } from "../config/industrias";
+import { db } from "../firebase";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 
 const dataInicial = {
   construccion: [
@@ -11,14 +13,17 @@ const dataInicial = {
     { id:5, nombre:"Motoniveladora CAT", tipo:"Niveladora", marca:"Caterpillar 140M", año:2021, ubicacion:"Almacén Central", estado:"Disponible", cliente:"—" },
   ],
   transporte: [
-    { id:1, nombre:"Camión Kenworth T680", tipo:"Camión", marca:"Kenworth T680", año:2022, ubicacion:"Base Norte", estado:"Rentada", cliente:"Logística Express" },
+    { id:1, nombre:"Camión Kenworth T680", tipo:"Camión", marca:"Kenworth T680", año:2022, ubicacion:"Base Norte", estado:"Disponible", cliente:"—" },
     { id:2, nombre:"Trailer Freightliner", tipo:"Trailer", marca:"Freightliner Cascadia", año:2021, ubicacion:"Base Sur", estado:"Disponible", cliente:"—" },
-    { id:3, nombre:"Camioneta Sprinter", tipo:"Van", marca:"Mercedes Sprinter", año:2023, ubicacion:"CDMX", estado:"Rentada", cliente:"Distribuidora Central" },
+    { id:3, nombre:"Camioneta Sprinter", tipo:"Van", marca:"Mercedes Sprinter", año:2023, ubicacion:"CDMX", estado:"En ruta", cliente:"Distribuidora Central" },
+    { id:4, nombre:"Camión Kenworth T370", tipo:"Camión", marca:"Kenworth T370", año:2020, ubicacion:"Base Norte", estado:"En ruta", cliente:"Logística Express" },
+    { id:5, nombre:"Trailer Peterbilt 579", tipo:"Trailer", marca:"Peterbilt 579", año:2019, ubicacion:"Base Sur", estado:"Mantenimiento", cliente:"—" },
+    { id:6, nombre:"Camión International LT", tipo:"Camión", marca:"International LT", año:2022, ubicacion:"Base Centro", estado:"Disponible", cliente:"—" },
   ],
   movilidad: [
-    { id:1, nombre:"Sedan Toyota Corolla", tipo:"Sedan", marca:"Toyota Corolla", año:2023, ubicacion:"Zona Norte", estado:"Rentada", cliente:"Juan Pérez" },
+    { id:1, nombre:"Sedan Toyota Corolla", tipo:"Sedan", marca:"Toyota Corolla", año:2023, ubicacion:"Zona Norte", estado:"En ruta", cliente:"Juan Pérez" },
     { id:2, nombre:"SUV Honda CR-V", tipo:"SUV", marca:"Honda CR-V", año:2022, ubicacion:"Zona Sur", estado:"Disponible", cliente:"—" },
-    { id:3, nombre:"Pickup Ford Ranger", tipo:"Pickup", marca:"Ford Ranger", año:2023, ubicacion:"Zona Centro", estado:"Rentada", cliente:"María García" },
+    { id:3, nombre:"Pickup Ford Ranger", tipo:"Pickup", marca:"Ford Ranger", año:2023, ubicacion:"Zona Centro", estado:"En ruta", cliente:"María García" },
   ],
   medico: [
     { id:1, nombre:"Resonancia MRI 3T", tipo:"Resonancia", marca:"Siemens Magnetom", año:2021, ubicacion:"Piso 2", estado:"Rentada", cliente:"Hospital Central" },
@@ -33,28 +38,90 @@ const dataInicial = {
 };
 
 const estadoStyle = {
-  Rentada:    { bg:"#e8f0ff", color:"#0071e3" },
-  Disponible: { bg:"#e8f8ee", color:"#1a7f37" },
-  Vencida:    { bg:"#fff0ee", color:"#ff3b30" },
+  Rentada:       { bg:"#e8f0ff", color:"#0071e3" },
+  Disponible:    { bg:"#e8f8ee", color:"#1a7f37" },
+  "En ruta":     { bg:"#e8f0ff", color:"#0071e3" },
+  Vencida:       { bg:"#fff0ee", color:"#ff3b30" },
   Mantenimiento: { bg:"#fff8e8", color:"#ff9500" },
+  Inactivo:      { bg:"#f5f5f7", color:"#aeaeb2" },
+};
+
+const estadoColores = {
+  Disponible:    "#1a7f37",
+  "En ruta":     "#0071e3",
+  Rentada:       "#0071e3",
+  Mantenimiento: "#ff9500",
+  Inactivo:      "#aeaeb2",
+  Vencida:       "#ff3b30",
 };
 
 function Maquinaria({ industria = "construccion" }) {
   const config = industriaConfig[industria] || industriaConfig.construccion;
   const inicial = { nombre:"", tipo:"", marca:"", año:"", ubicacion:"", estado:"Disponible", cliente:"—" };
 
-  const [data, setData] = useState(dataInicial[industria] || dataInicial.construccion);
+  const [data, setData] = useState([]);
+  const [cargando, setCargando] = useState(true);
   const [q, setQ] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [confirmarId, setConfirmarId] = useState(null);
+  const [editandoId, setEditandoId] = useState(null);
+  const [editEstado, setEditEstado] = useState("");
   const [form, setForm] = useState(inicial);
   const [toast, setToast] = useState("");
+
+  // Cargar desde Firestore
+  useEffect(() => {
+    async function cargar() {
+      try {
+        const ref = doc(db, "maquinaria", industria);
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+          setData(snap.data().items);
+        } else {
+          setData(dataInicial[industria] || dataInicial.construccion);
+        }
+      } catch (e) {
+        console.error(e);
+        setData(dataInicial[industria] || dataInicial.construccion);
+      }
+      setCargando(false);
+    }
+    cargar();
+  }, [industria]);
+
+  // Guardar en Firestore
+  useEffect(() => {
+    if (cargando) return;
+    async function guardar() {
+      try {
+        const ref = doc(db, "maquinaria", industria);
+        await setDoc(ref, { items: data });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    guardar();
+  }, [data, industria, cargando]);
+
+  // Cerrar popup al click fuera
+  useEffect(() => {
+    function handleClick(e) {
+      if (!e.target.closest(".estado-popup")) setEditandoId(null);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
   const filtrados = data.filter(m =>
     `${m.nombre} ${m.tipo} ${m.marca}`.toLowerCase().includes(q.toLowerCase())
   );
 
   function handleChange(e) { setForm({ ...form, [e.target.name]: e.target.value }); }
+
+  function cambiarEstado(id, estado) {
+    setData(data.map(m => m.id === id ? { ...m, estado } : m));
+    showToast(`Estado actualizado a ${estado}`);
+  }
 
   function handleSave() {
     if (!form.nombre || !form.marca) { showToast("Completa los campos obligatorios"); return; }
@@ -71,6 +138,16 @@ function Maquinaria({ industria = "construccion" }) {
   }
 
   function showToast(msg) { setToast(msg); setTimeout(() => setToast(""), 3000); }
+
+  const estadosDisponibles = industria === "transporte" || industria === "movilidad"
+    ? ["Disponible","En ruta","Mantenimiento","Inactivo"]
+    : ["Disponible","Rentada","Mantenimiento","Inactivo"];
+
+  if (cargando) return (
+    <div style={{ display:"flex", alignItems:"center", justifyContent:"center", minHeight:"60vh" }}>
+      <div style={{ fontSize:14, color:"#aeaeb2", fontWeight:500 }}>Cargando...</div>
+    </div>
+  );
 
   return (
     <div style={styles.page}>
@@ -94,8 +171,8 @@ function Maquinaria({ industria = "construccion" }) {
       <div style={styles.miniGrid}>
         {[
           { label:"Total", value:data.length, icon:config.activoIcon, color:"#1d1d1f" },
-          { label:"Rentado", value:data.filter(m=>m.estado==="Rentada").length, icon:"handshake", color:"#00b4d8" },
           { label:"Disponible", value:data.filter(m=>m.estado==="Disponible").length, icon:"check_circle", color:"#1a7f37" },
+          { label:"En uso", value:data.filter(m=>m.estado==="En ruta"||m.estado==="Rentada").length, icon:"handshake", color:"#00b4d8" },
           { label:"Mantenimiento", value:data.filter(m=>m.estado==="Mantenimiento").length, icon:"build", color:"#ff9500" },
         ].map((s,i) => (
           <div key={i} style={styles.miniCard}>
@@ -130,17 +207,41 @@ function Maquinaria({ industria = "construccion" }) {
                 </td>
                 <td style={{...styles.td, color:"#6e6e73"}}>{m.cliente}</td>
                 <td style={styles.td}>
-                  {confirmarId === m.id ? (
-                    <div style={styles.confirmBox}>
-                      <span style={styles.confirmText}>¿Eliminar?</span>
-                      <button style={styles.btnConfirm} onClick={() => handleDelete(m.id)}>Sí</button>
-                      <button style={styles.btnCancelar} onClick={() => setConfirmarId(null)}>No</button>
-                    </div>
-                  ) : (
-                    <button style={styles.btnDelete} onClick={() => setConfirmarId(m.id)}>
-                      <span className="material-icons" style={{ fontSize:16 }}>delete</span>
+                  <div style={{ display:"flex", gap:6, position:"relative" }} className="estado-popup">
+                    <button
+                      style={styles.btnEdit}
+                      onClick={() => { setEditandoId(editandoId === m.id ? null : m.id); setEditEstado(m.estado); }}
+                    >
+                      <span className="material-icons" style={{ fontSize:16 }}>edit</span>
                     </button>
-                  )}
+                    {confirmarId === m.id ? (
+                      <div style={styles.confirmBox}>
+                        <span style={styles.confirmText}>¿Eliminar?</span>
+                        <button style={styles.btnConfirm} onClick={() => handleDelete(m.id)}>Sí</button>
+                        <button style={styles.btnCancelar} onClick={() => setConfirmarId(null)}>No</button>
+                      </div>
+                    ) : (
+                      <button style={styles.btnDelete} onClick={() => setConfirmarId(m.id)}>
+                        <span className="material-icons" style={{ fontSize:16 }}>delete</span>
+                      </button>
+                    )}
+                    {editandoId === m.id && (
+                      <div style={styles.miniPopup} className="estado-popup">
+                        <div style={styles.miniPopupTitle}>Cambiar estado</div>
+                        {estadosDisponibles.map(e => (
+                          <div
+                            key={e}
+                            onClick={() => { cambiarEstado(m.id, e); setEditandoId(null); }}
+                            style={{ ...styles.miniPopupOption, ...(m.estado === e ? styles.miniPopupOptionActive : {}) }}
+                          >
+                            <div style={{ ...styles.miniDot, background: estadoColores[e] }} />
+                            {e}
+                          </div>
+                        ))}
+                        <button style={styles.miniPopupCerrar} onClick={() => setEditandoId(null)}>Cancelar</button>
+                      </div>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
@@ -167,9 +268,7 @@ function Maquinaria({ industria = "construccion" }) {
           </FormGroup>
           <FormGroup label="Estado">
             <Select name="estado" value={form.estado} onChange={handleChange}>
-              <option>Disponible</option>
-              <option>Rentada</option>
-              <option>Mantenimiento</option>
+              {estadosDisponibles.map(e => <option key={e}>{e}</option>)}
             </Select>
           </FormGroup>
         </FormGrid>
@@ -187,7 +286,7 @@ function Maquinaria({ industria = "construccion" }) {
 }
 
 const styles = {
-  page: { padding:"0 40px 40px", marginLeft:240, background:"#f5f5f7", minHeight:"100vh" },
+  page: { padding:"0 40px 40px", background:"#f5f5f7", minHeight:"100vh" },
   topbar: { display:"flex", justifyContent:"space-between", alignItems:"flex-end", padding:"40px 0 28px", marginBottom:28 },
   pageTag: { fontSize:13, fontWeight:500, color:"#00b4d8", marginBottom:4 },
   title: { fontSize:34, fontWeight:700, color:"#1d1d1f", letterSpacing:-0.5 },
@@ -209,11 +308,18 @@ const styles = {
   tr: { borderBottom:"1px solid #f5f5f7" },
   td: { padding:"16px 24px", fontSize:14, color:"#1d1d1f" },
   badge: { display:"inline-block", padding:"4px 12px", borderRadius:20, fontSize:12, fontWeight:600 },
+  btnEdit: { background:"#f0fdf8", border:"none", borderRadius:8, padding:"6px 8px", cursor:"pointer", color:"#00b4d8", display:"flex", alignItems:"center" },
   btnDelete: { background:"#fff0ee", border:"none", borderRadius:8, padding:"6px 8px", cursor:"pointer", color:"#ff3b30", display:"flex", alignItems:"center" },
   confirmBox: { display:"flex", alignItems:"center", gap:6 },
   confirmText: { fontSize:13, color:"#ff3b30", fontWeight:500 },
   btnConfirm: { background:"#ff3b30", color:"#fff", border:"none", borderRadius:8, padding:"4px 10px", fontSize:12, fontWeight:600, cursor:"pointer" },
   btnCancelar: { background:"#f5f5f7", color:"#6e6e73", border:"none", borderRadius:8, padding:"4px 10px", fontSize:12, fontWeight:500, cursor:"pointer" },
+  miniPopup: { position:"absolute", right:0, top:36, background:"#ffffff", borderRadius:14, boxShadow:"0 8px 32px rgba(0,0,0,.15)", padding:"12px", zIndex:50, minWidth:160, border:"1px solid #e5e5e7" },
+  miniPopupTitle: { fontSize:11, fontWeight:600, color:"#aeaeb2", textTransform:"uppercase", letterSpacing:0.5, marginBottom:8 },
+  miniPopupOption: { display:"flex", alignItems:"center", gap:8, padding:"8px 10px", borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:500, color:"#1d1d1f" },
+  miniPopupOptionActive: { background:"#f0fdf8", color:"#00b4d8" },
+  miniDot: { width:8, height:8, borderRadius:"50%", flexShrink:0 },
+  miniPopupCerrar: { width:"100%", marginTop:8, background:"#f5f5f7", border:"none", borderRadius:8, padding:"7px", fontSize:12, color:"#6e6e73", cursor:"pointer", fontFamily:"inherit" },
   toast: { position:"fixed", bottom:24, right:24, background:"#1d1d1f", color:"#fff", padding:"12px 20px", borderRadius:12, fontSize:14, fontWeight:500, display:"flex", alignItems:"center", gap:8, boxShadow:"0 8px 24px rgba(0,0,0,.2)" },
 };
 

@@ -1,8 +1,14 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { industriaConfig } from "../config/industrias";
 
 function Dashboard({ industria = "construccion" }) {
   const config = industriaConfig[industria] || industriaConfig.construccion;
+  const [tiempo, setTiempo] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => setTiempo(new Date()), 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const kpis = [
     { label:"Clientes activos", value:"12", icon:"people", color:"#00b4d8", sub:"+2 este mes" },
@@ -34,11 +40,10 @@ function Dashboard({ industria = "construccion" }) {
         </div>
         <div style={styles.dateBox}>
           <span className="material-icons" style={{ fontSize:16, color:"#aeaeb2" }}>calendar_today</span>
-          <span style={styles.dateText}>Marzo 2026</span>
+          <span style={styles.dateText}>{tiempo.toLocaleDateString("es-MX", { month:"long", year:"numeric" })}</span>
         </div>
       </div>
 
-      {/* KPIs */}
       <div style={styles.kpiGrid}>
         {kpis.map((k, i) => (
           <div key={i} style={styles.kpiCard}>
@@ -53,7 +58,6 @@ function Dashboard({ industria = "construccion" }) {
       </div>
 
       <div style={styles.row}>
-        {/* ACTIVIDAD RECIENTE */}
         <div style={{ ...styles.card, flex:1 }}>
           <div style={styles.cardHeader}>
             <span className="material-icons" style={{ fontSize:18, color:"#00b4d8" }}>history</span>
@@ -74,7 +78,6 @@ function Dashboard({ industria = "construccion" }) {
           </div>
         </div>
 
-        {/* PROXIMOS VENCIMIENTOS */}
         <div style={{ ...styles.card, flex:1 }}>
           <div style={styles.cardHeader}>
             <span className="material-icons" style={{ fontSize:18, color:"#ff9500" }}>schedule</span>
@@ -83,17 +86,13 @@ function Dashboard({ industria = "construccion" }) {
           <div style={styles.vencimientosList}>
             {proximosVencimientos.map((v, i) => (
               <div key={i} style={styles.vencimientoItem}>
-                <div style={styles.vencimientoLeft}>
+                <div>
                   <div style={styles.vencimientoNombre}>{v.nombre}</div>
                   <div style={styles.vencimientoFecha}>{v.fecha}</div>
                 </div>
                 <div style={styles.vencimientoRight}>
                   <div style={styles.vencimientoMonto}>{v.monto}</div>
-                  <div style={{
-                    ...styles.vencimientoDias,
-                    background: v.dias <= 20 ? "#fff0ee" : "#fff8e8",
-                    color: v.dias <= 20 ? "#ff3b30" : "#ff9500"
-                  }}>
+                  <div style={{ ...styles.vencimientoDias, background: v.dias <= 20 ? "#fff0ee" : "#fff8e8", color: v.dias <= 20 ? "#ff3b30" : "#ff9500" }}>
                     {v.dias} días
                   </div>
                 </div>
@@ -103,7 +102,6 @@ function Dashboard({ industria = "construccion" }) {
         </div>
       </div>
 
-      {/* RESUMEN ACTIVOS */}
       <div style={styles.card}>
         <div style={styles.cardHeader}>
           <span className="material-icons" style={{ fontSize:18, color:"#00b4d8" }}>{config.activoIcon}</span>
@@ -131,7 +129,7 @@ function Dashboard({ industria = "construccion" }) {
 }
 
 const styles = {
-  page: { padding:"0 40px 40px", marginLeft:240, background:"#f5f5f7", minHeight:"100vh" },
+  page: { padding:"0 40px 40px", background:"#f5f5f7", minHeight:"100vh" },
   topbar: { display:"flex", justifyContent:"space-between", alignItems:"flex-end", padding:"40px 0 28px", marginBottom:28 },
   pageTag: { fontSize:13, fontWeight:500, color:"#00b4d8", marginBottom:4 },
   title: { fontSize:34, fontWeight:700, color:"#1d1d1f", letterSpacing:-0.5 },
@@ -155,7 +153,6 @@ const styles = {
   actividadTiempo: { fontSize:12, color:"#aeaeb2" },
   vencimientosList: { padding:"8px 0" },
   vencimientoItem: { display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 24px", borderBottom:"1px solid #f5f5f7" },
-  vencimientoLeft: {},
   vencimientoNombre: { fontSize:13, fontWeight:600, color:"#1d1d1f", marginBottom:2 },
   vencimientoFecha: { fontSize:12, color:"#aeaeb2" },
   vencimientoRight: { display:"flex", flexDirection:"column", alignItems:"flex-end", gap:4 },

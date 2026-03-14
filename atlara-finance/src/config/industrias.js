@@ -18,6 +18,7 @@ export const industriaConfig = {
     },
     inventario: "Refacciones",
     inventarioIcon: "inventory_2",
+    tieneOperadores: false,
   },
   transporte: {
     activo: "Flotilla",
@@ -38,6 +39,7 @@ export const industriaConfig = {
     },
     inventario: "Refacciones",
     inventarioIcon: "build",
+    tieneOperadores: true,
   },
   movilidad: {
     activo: "Vehículos",
@@ -58,6 +60,7 @@ export const industriaConfig = {
     },
     inventario: "Refacciones",
     inventarioIcon: "build",
+    tieneOperadores: true,
   },
   medico: {
     activo: "Equipos",
@@ -78,6 +81,7 @@ export const industriaConfig = {
     },
     inventario: "Insumos",
     inventarioIcon: "medical_information",
+    tieneOperadores: false,
   },
   inmobiliaria: {
     activo: "Propiedades",
@@ -98,5 +102,6 @@ export const industriaConfig = {
     },
     inventario: "Mantenimiento",
     inventarioIcon: "home_repair_service",
+    tieneOperadores: false,
   },
 };
